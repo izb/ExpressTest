@@ -1,1 +1,40 @@
 A replacement for MSTest when using the unit-testingless Visual Studio 2010 Express
+
+Use like this:
+
+In your files, you'll need to maintain two project files (And two solutions...)
+
+              MySolution.sln     MySolutionExpress.sln
+                 |        |       |             |
+                 |       SomeProject            |
+                 |             |                |
+    TestProject.csproj         |              TestProjectExpress.csproj
+                    |          |               |
+                    |        <src>             |
+                    |                          |
+                    \                          /
+                     \                        /
+                      \______________________/
+                                 |
+                             <test src>
+
+It's perfectly ok to have these solution and project files sitting alongside each
+other in the same directories. The only headache is that you need to remember to
+change both of them if you change one.
+
+In the XXExpress.csproj project files, you need to define some preprocessor directive,
+e.g. EXPRESS2010. Then, in the code, where you would normally reference MSTest, you
+must do this:
+
+#if(EXPRESS2010)
+    using com.kupio.ExpressTest.UnitTesting;
+#else
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+#endif
+
+
+Note that you can't have private accessor references in your test project any more,
+so you need to do per-function/property accessor code, guarded by #if(DEBUG) blocks.
+
+It's not the prettiest, but you get to use MSTest in an IDE and still allow
+people with VS2010 Express to contribute to your code. Yay.
