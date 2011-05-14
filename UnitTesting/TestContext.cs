@@ -12,16 +12,20 @@ namespace com.kupio.ExpressTest.UnitTesting
         {
             get
             {
-                return Directory.GetCurrentDirectory() + "\\ExpressTest\\";
+                string cd = Directory.GetCurrentDirectory();
+                while (!HasSolutionFile(cd))
+                {
+                    cd = Directory.GetParent(cd).ToString();
+                }
+                return cd + "\\ExpressTestOutput\\";
             }
         }
 
-        public string TestName
+        private bool HasSolutionFile(string cd)
         {
-            get
-            {
-                return "JeffTheTest";
-            }
+            return (Directory.GetFiles(cd, "*.sln").Length > 0);
         }
+
+        public string TestName { get; set; }
     }
 }
