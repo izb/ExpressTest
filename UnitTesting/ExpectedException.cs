@@ -11,9 +11,9 @@ namespace com.kupio.ExpressTest.UnitTesting
     {
         public ExpectedException(Type t)
         {
-            this.typ = t;
+            this.Type = t;
         }
 
-        public Type typ { get; set; }
+        public Type Type { get; set; }
     }
 }

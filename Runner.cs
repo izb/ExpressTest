@@ -6,15 +6,26 @@ namespace com.kupio.ExpressTest
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using com.kupio.ExpressTest.UnitTesting;
-    using System.Diagnostics;
 
     public class Runner
     {
         public void run()
         {
+            /*
+            try
+            {
+                Directory.Delete(new TestContext().TestDir, true);
+            }
+            catch (DirectoryNotFoundException dnfe)
+            {
+                // Ignore
+            }
+            */
+
             Assembly thisAsm = Assembly.GetCallingAssembly();
             List<Type> types = thisAsm.GetTypes().Where(t => t.IsClass && !t.IsAbstract).ToList();
 
@@ -34,7 +45,7 @@ namespace com.kupio.ExpressTest
                 }
             }
 
-            Trace.WriteLineIf(fails.Count > 0, "WARNING: There were " + fails + " failed tests!!");
+            Trace.WriteLineIf(fails.Count > 0, "WARNING: There were " + fails.Count + " failed tests!!");
 
             if (fails.Count > 0)
             {
@@ -57,6 +68,7 @@ namespace com.kupio.ExpressTest
             MethodInfo init = null;
             MethodInfo cleanup = null;
             List<MethodInfo> tests = new List<MethodInfo>();
+            Dictionary<MethodInfo, Type> expectedExceptions = new Dictionary<MethodInfo, Type>();
 
             foreach (MethodInfo m in methods)
             {
@@ -80,10 +92,13 @@ namespace com.kupio.ExpressTest
                         tests.Add(m);
                     }
 
+                    if (a is ExpectedException)
+                    {
+                        expectedExceptions.Add(m, ((ExpectedException)a).Type);
+                    }
+
                 }
             }
-
-            TestContext tc = new TestContext();
 
             ConstructorInfo ci = t.GetConstructor(new Type[] { });
             object testObject = ci.Invoke(new Object[] { });
@@ -112,9 +127,12 @@ namespace com.kupio.ExpressTest
                 }
                 catch (Exception e)
                 {
-                    fails.Add(t.Name + "." + method.Name);
-                    passed = false;
-                    Debug.WriteLine("FAIL: "+method.Name+"; "+e.InnerException.Message);
+                    if (!(expectedExceptions.ContainsKey(method) && e.InnerException.GetType() == expectedExceptions[method]))
+                    {
+                        fails.Add(t.Name + "." + method.Name);
+                        passed = false;
+                        Debug.WriteLine("FAIL: "+method.Name+"; "+e.InnerException.Message);
+                    }
                 }
 
                 Trace.WriteLineIf(passed, "OK: "+method.Name);
