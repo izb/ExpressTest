@@ -7,9 +7,11 @@ namespace com.kupio.ExpressTest
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using com.kupio.ExpressTest.UnitTesting;
+    using System.Xml;
 
     public class Runner
     {
@@ -26,8 +28,13 @@ namespace com.kupio.ExpressTest
             }
             */
 
+
             Assembly thisAsm = Assembly.GetCallingAssembly();
             List<Type> types = thisAsm.GetTypes().Where(t => t.IsClass && !t.IsAbstract).ToList();
+
+            string assemblyName = thisAsm.FullName.Substring(0, thisAsm.FullName.IndexOf(','));
+
+            List<string> includes = ReadTestSet(thisAsm, assemblyName);
 
             List<string> fails = new List<string>();
             int testCount = 0;
@@ -39,7 +46,7 @@ namespace com.kupio.ExpressTest
                 {
                     if (a is TestClass)
                     {
-                        ProcessClass(t, fails, ref testCount);
+                        ProcessClass(t, fails, includes, ref testCount);
                         continue;
                     }
                 }
@@ -49,10 +56,17 @@ namespace com.kupio.ExpressTest
 
             if (fails.Count > 0)
             {
-                Trace.WriteLine("Summary of failure:");
-                foreach (var fail in fails)
+                using(TextWriter tw = new StreamWriter(new TestContext().TestDir + "/" + assemblyName+".testSet.xml", false))
                 {
-                    Trace.WriteLine("FAILED: " + fail);
+                    tw.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+                    tw.WriteLine("<tests>");
+                    Trace.WriteLine("Summary of failure:");
+                    foreach (var fail in fails)
+                    {
+                        Trace.WriteLine("FAILED: " + fail);
+                        tw.WriteLine("    <include>"+fail+"</include>");
+                    }
+                    tw.WriteLine("</tests>");
                 }
             }
             Trace.WriteLine("Pass rate: " + (testCount - fails.Count) + "/" + testCount);
@@ -61,7 +75,34 @@ namespace com.kupio.ExpressTest
 
         }
 
-        private void ProcessClass(Type t, List<string> fails, ref int testCount)
+        private List<string> ReadTestSet(Assembly asm, string asmName)
+        {
+            string xmlRes = asmName + ".res.express." + asmName + ".testSet.xml";
+
+            List<string> includes = new List<string>();
+
+            using (Stream s = asm.GetManifestResourceStream(xmlRes))
+            {
+                if (s == null)
+                {
+                    return null;
+                }
+
+                using (XmlReader reader = XmlReader.Create(s))
+                {
+                    while (reader.ReadToFollowing("include"))
+                    {
+                        includes.Add(reader.ReadElementContentAsString());
+                    }
+                }
+            }
+
+            string[] names = asm.GetManifestResourceNames();
+
+            return includes.Count > 0? includes : null;
+        }
+
+        private void ProcessClass(Type t, List<string> fails, List<string> includes, ref int testCount)
         {
             MethodInfo[] methods = t.GetMethods();
 
@@ -89,7 +130,10 @@ namespace com.kupio.ExpressTest
 
                     if (a is TestMethod)
                     {
-                        tests.Add(m);
+                        if (includes == null || includes.Contains(t.Name+"."+m.Name))
+                        {
+                            tests.Add(m);
+                        }
                     }
 
                     if (a is ExpectedException)
