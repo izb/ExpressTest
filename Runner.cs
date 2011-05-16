@@ -2,7 +2,7 @@
 // ExpressTest. A stand-in for MSTest when using Visual Studio 2010 Express.
 //-----------------------------------------------------------------------
 
-namespace com.kupio.ExpressTest
+namespace ExpressTest
 {
     using System;
     using System.Collections.Generic;
@@ -10,8 +10,8 @@ namespace com.kupio.ExpressTest
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using com.kupio.ExpressTest.UnitTesting;
     using System.Xml;
+    using ExpressTest.UnitTesting;
 
     public class Runner
     {
@@ -27,7 +27,6 @@ namespace com.kupio.ExpressTest
                 // Ignore
             }
             */
-
 
             Assembly thisAsm = Assembly.GetCallingAssembly();
             List<Type> types = thisAsm.GetTypes().Where(t => t.IsClass && !t.IsAbstract).ToList();

@@ -2,7 +2,7 @@
 // ExpressTest. A stand-in for MSTest when using Visual Studio 2010 Express.
 //-----------------------------------------------------------------------
 
-namespace com.kupio.ExpressTest.UnitTesting
+namespace ExpressTest.UnitTesting
 {
     public class Assert
     {

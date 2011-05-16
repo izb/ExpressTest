@@ -27,7 +27,7 @@ e.g. EXPRESS2010. Then, in the code, where you would normally reference MSTest, 
 must do this:
 
 #if(EXPRESS2010)
-    using com.kupio.ExpressTest.UnitTesting;
+    using ExpressTest.UnitTesting;
 #else
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 #endif
