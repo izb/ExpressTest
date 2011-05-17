@@ -17,7 +17,7 @@ namespace ExpressTest.UnitTesting
                 {
                     cd = Directory.GetParent(cd).ToString();
                 }
-                return cd + "\\ExpressTestOutput\\";
+                return cd + "\\TestResultsExpress\\";
             }
         }
 
