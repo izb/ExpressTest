@@ -26,7 +26,7 @@ namespace ExpressTest.UnitTesting
         {
             if (l1 != l2)
             {
-                throw new ExpressTestException(message);
+                throw new ExpressTestException(message + (" [" + l1 + " != " + l2 + "]"));
             }
         }
 
@@ -37,17 +37,27 @@ namespace ExpressTest.UnitTesting
 
         public static void AreEqual(object o1, object o2, string message)
         {
-            if (!o1.Equals(o2))
+            if (o1 == null && o2 == null)
             {
-                throw new ExpressTestException(message);
+                return;
+            }
+
+            if (o1 == null || !o1.Equals(o2))
+            {
+                throw new ExpressTestException(message + (" [" + ((o1 == null) ? "null" : o1.ToString()) + " != " + ((o2 == null) ? "null" : o2.ToString()) + "]"));
             }
         }
 
         public static void AreNotEqual(object o1, object o2, string message)
         {
-            if (o1.Equals(o2))
+            if (o1 == null ^ o2 == null)
             {
-                throw new ExpressTestException(message);
+                return;
+            }
+
+            if (o1 != null && o1.Equals(o2))
+            {
+                throw new ExpressTestException(message + "[" + ((o1 == null) ? "null" : o1.ToString()) + "]");
             }
         }
     }
